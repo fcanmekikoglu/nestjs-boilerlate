@@ -6,6 +6,8 @@ import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  app.enableCors({ origin: "*" });
+
   // For API versioning. its v1 except auth route
   app.enableVersioning({
     type: VersioningType.URI,
