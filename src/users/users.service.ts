@@ -1,7 +1,7 @@
-import { Injectable, Logger, NotFoundException } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
-import { User, UserDocument } from "./schemas/user.schema";
 import { Model } from "mongoose";
+import { User, UserDocument } from "./schemas/user.schema";
 
 @Injectable()
 export class UsersService {
@@ -9,14 +9,16 @@ export class UsersService {
 
   constructor(@InjectModel(User.name) private readonly userModel: Model<User>) {}
 
-  async getMe(userId: string): Promise<UserDocument> {
-    const me: UserDocument = await this.userModel.findById(userId);
-
-    if (!me) {
-      throw new NotFoundException("User not found");
-    }
-
-    return me;
+  /**
+   * Fetches a user by their user ID from the database.
+   *
+   * @async
+   * @param {string} userId - The ID of the user to retrieve.
+   * @returns {Promise<UserDocument>} Returns a promise that resolves to the user document if found.
+   * @throws {Error} Throws an error if there's an issue with the database operation.
+   */
+  public async getMe(userId: string): Promise<UserDocument> {
+    return await this.userModel.findById(userId);
   }
 
   /**

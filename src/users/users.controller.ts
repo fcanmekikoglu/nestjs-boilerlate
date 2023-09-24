@@ -1,10 +1,10 @@
 import { Controller, Get, UseGuards } from "@nestjs/common";
-import { UsersService } from "./users.service";
-import { Roles } from "src/auth/decorators/roles.decorator";
-import { UserRole } from "./user-role.enum";
-import { AccessTokenGuard } from "src/auth/guards/access-token.guard";
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { GetCurrentUserId } from "src/auth/decorators/get-current-user-id.decorator";
-import { ApiBody, ApiOperation, ApiTags, ApiResponse, ApiBearerAuth } from "@nestjs/swagger";
+import { Roles } from "src/auth/decorators/roles.decorator";
+import { AccessTokenGuard } from "src/auth/guards/access-token.guard";
+import { UserRole } from "./user-role.enum";
+import { UsersService } from "./users.service";
 
 @UseGuards(AccessTokenGuard)
 @ApiTags("Users")
@@ -18,10 +18,8 @@ export class UsersController {
   @ApiResponse({ status: 200, description: "Successfully retrieved user data" })
   @ApiResponse({ status: 401, description: "Unauthorized" })
   @ApiResponse({ status: 403, description: "Forbidden" })
-  @ApiResponse({ status: 404, description: "User not found" })
   @Get("me")
   async getMe(@GetCurrentUserId() userId: string) {
-    console.log(userId)
     return await this.usersService.getMe(userId);
   }
 }

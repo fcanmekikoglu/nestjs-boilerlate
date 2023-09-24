@@ -23,11 +23,11 @@ export class AuthController {
   }
 
   @Public()
-  @Post('signin')
-  @ApiOperation({summary:  "User Signin"})
+  @Post("signin")
+  @ApiOperation({ summary: "User Signin" })
   @ApiResponse({ status: 201, description: "User signed in successfully" })
-  @ApiResponse({ status: 400, description: "Bad request"})
-  async signin(@Body() siginDto: SigninDto):Promise<Tokens>{
-    return await this.authService.validateUser(siginDto)
+  @ApiResponse({ status: 400, description: "Bad request" })
+  async signin(@Body() siginDto: SigninDto): Promise<Tokens> {
+    return await this.authService.validateUser(siginDto);
   }
 }
