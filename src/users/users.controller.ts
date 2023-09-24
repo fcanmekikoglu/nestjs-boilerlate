@@ -6,21 +6,22 @@ import { AccessTokenGuard } from "src/auth/guards/access-token.guard";
 import { GetCurrentUserId } from "src/auth/decorators/get-current-user-id.decorator";
 import { ApiBody, ApiOperation, ApiTags, ApiResponse, ApiBearerAuth } from "@nestjs/swagger";
 
-@ApiTags("Users")
 @UseGuards(AccessTokenGuard)
-@Controller("user")
+@ApiTags("Users")
+@Controller("users")
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Roles(UserRole.USER)
-  @Get("me")
   @ApiOperation({ summary: "Get current user's information" })
   @ApiBearerAuth()
   @ApiResponse({ status: 200, description: "Successfully retrieved user data" })
   @ApiResponse({ status: 401, description: "Unauthorized" })
   @ApiResponse({ status: 403, description: "Forbidden" })
   @ApiResponse({ status: 404, description: "User not found" })
+  @Get("me")
   async getMe(@GetCurrentUserId() userId: string) {
+    console.log(userId)
     return await this.usersService.getMe(userId);
   }
 }
