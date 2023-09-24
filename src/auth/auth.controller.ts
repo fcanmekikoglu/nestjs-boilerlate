@@ -4,7 +4,7 @@ import { Public } from "./decorators/public.decorator";
 import { SignupDto } from "./dto/signup.dto";
 import { Tokens } from "./types/tokens.type";
 
-import { ApiBody, ApiOperation, ApiTags, ApiResponse } from "@nestjs/swagger";
+import { ApiBody, ApiOperation, ApiTags, ApiResponse, ApiQuery } from "@nestjs/swagger";
 import { SigninDto } from "./dto/signin.dto";
 
 @ApiTags("Authentication")
@@ -33,6 +33,11 @@ export class AuthController {
 
   @Public()
   @Get("verify/email")
+  @ApiOperation({ summary: "Verify account by email" })
+  @ApiQuery({ name: "email", description: "Email to verify", type: String, required: true })
+  @ApiQuery({ name: "hash", description: "Hash for verification", type: String, required: true })
+  @ApiResponse({ status: 200, description: "Success!" })
+  @ApiResponse({ status: 400, description: "Invalid action" })
   async verifyEmailPage(@Query() verifyEmailPayload: { email: string; hash: string }) {
     return await this.authService.verifyEmail(verifyEmailPayload);
   }
