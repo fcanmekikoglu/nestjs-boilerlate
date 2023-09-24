@@ -57,6 +57,6 @@ export class AuthController {
   @ApiOperation({ summary: "Send new password for resetting password" })
   @ApiBody({ type: ResetPasswordDto, description: "Reset password data" })
   async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
-    return await this.authService.resetPassword(resetPasswordDto)
+    return await this.authService.resetPassword(resetPasswordDto);
   }
 }
