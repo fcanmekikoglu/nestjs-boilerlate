@@ -13,6 +13,7 @@ export class MailService {
   ) {}
 
   baseUrl = this.configService.get<string>("API_BASE_URL");
+  appName = this.configService.get<string>("APP_NAME");
 
   async userSignup(user: UserDocument) {
     const filePath = path.join(__dirname, "../../src/mail/mail-templates/activation.hbs");
@@ -25,11 +26,11 @@ export class MailService {
       context: {
         title: "this is title",
         url: `${this.baseUrl}/v1/auth/verify/email?email=${user.email}&hash=${user.hash}`,
-        actionTitle: "this is action Title",
-        app_name: "api app title",
-        text1: "1asasf",
-        text2: "2asdfasf",
-        text3: "sdjsdg",
+        actionTitle: "Activate",
+        app_name: this.appName || "NestJS API",
+        text1: "You can click to button below for activating your account",
+        text2: "",
+        text3: "",
       },
     });
   }

@@ -5,7 +5,9 @@ import { Roles } from "src/auth/decorators/roles.decorator";
 import { AccessTokenGuard } from "src/auth/guards/access-token.guard";
 import { UserRole } from "./user-role.enum";
 import { UsersService } from "./users.service";
+import { EmailVerifiedGuard } from "src/auth/guards/email-verified.guard";
 
+@UseGuards(EmailVerifiedGuard)
 @UseGuards(AccessTokenGuard)
 @ApiTags("Users")
 @Controller("users")

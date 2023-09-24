@@ -3,7 +3,6 @@ import { ConfigService } from "@nestjs/config";
 import Handlebars from "handlebars";
 import * as nodemailer from "nodemailer";
 import { Transporter, SendMailOptions, SentMessageInfo } from "nodemailer";
-import fs from "node:fs/promises";
 
 @Injectable()
 export class MailerService {
@@ -26,10 +25,9 @@ export class MailerService {
     context,
     ...mailOptions
   }: SendMailOptions & { template: string; context: Record<string, any> }): Promise<SentMessageInfo> {
-    let html: string | undefined;
-    html = Handlebars.compile(template, {
-            strict: true,
-          })(context);
+    const html = Handlebars.compile(template, {
+      strict: true,
+    })(context);
 
     await this.transporter.sendMail({
       ...mailOptions,

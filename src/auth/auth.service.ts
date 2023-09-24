@@ -138,7 +138,7 @@ export class AuthService {
       if (user.hash != verifyAccountByEmailPayload.hash) throw new Error();
       user.isEmailVerified = true;
       await user.save();
-      return "Success! Account verified";
+      return "Success! Account verified now, you need to login.";
     } catch (error) {
       return "Invalid action";
     }
@@ -168,11 +168,11 @@ export class AuthService {
   private async signTokens(user: UserDocument): Promise<Tokens> {
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(
-        { sub: user.id, email: user.email, roles: user.roles },
+        { sub: user.id, email: user.email, roles: user.roles, isEmailVerified: user.isEmailVerified },
         { secret: JWT_CONSTANTS.ACCESS_TOKEN_SECRET, expiresIn: JWT_CONSTANTS.ACCESS_TOKEN_EXPIRES_IN },
       ),
       this.jwtService.signAsync(
-        { sub: user.id, email: user.email, roles: user.roles },
+        { sub: user.id, email: user.email, roles: user.roles, isEmailVerified: user.isEmailVerified },
         { secret: JWT_CONSTANTS.REFRESH_TOKEN_SECRET, expiresIn: JWT_CONSTANTS.REFRESH_TOKEN_EXPIRES_IN },
       ),
     ]);
