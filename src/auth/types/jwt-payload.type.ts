@@ -1,4 +1,4 @@
-import { UserRole } from "src/user/user-role.enum";
+import { UserRole } from "src/users/user-role.enum";
 
 export type JwtPayload = {
   sub: string;

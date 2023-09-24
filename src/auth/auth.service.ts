@@ -1,11 +1,11 @@
 import { BadRequestException, Injectable, Logger } from "@nestjs/common";
-import { UserService } from "src/user/user.service";
+import { UsersService } from "src/users/users.service";
 import { Tokens } from "./types/tokens.type";
 import { SignupDto } from "./dto/signup.dto";
 
 import * as bcrypt from "bcrypt";
 import { JwtService } from "@nestjs/jwt";
-import { UserDocument } from "src/user/schemas/user.schema";
+import { UserDocument } from "src/users/schemas/user.schema";
 import { JWT_CONSTANTS } from "./constants";
 import { SigninDto } from "./dto/signin.dto";
 
@@ -14,7 +14,7 @@ export class AuthService {
   private readonly logger = new Logger(AuthService.name);
 
   constructor(
-    private readonly userService: UserService,
+    private readonly userService: UsersService,
     private readonly jwtService: JwtService,
   ) {}
 
@@ -24,7 +24,7 @@ export class AuthService {
     const existingUser = await this.userService.findUserByEmail(email);
 
     if (existingUser) {
-      this.logger.warn("User tried to signup with a used email address");
+      this.logger.debug("User tried to signup with a used email address");
       throw new BadRequestException("Try different e-mail address");
     }
 
@@ -32,45 +32,46 @@ export class AuthService {
 
     const newUser = await this.userService.createUser(email, hashedPassword);
 
-    this.logger.log(`User with email ${email} signed up successfully.`);
+    this.logger.debug(`User with email ${email} signed up successfully.`);
 
     const tokens = await this.signTokens(newUser);
+    const { accessToken, refreshToken } = tokens;
 
-    const hashedToken = await this.hashToken(tokens.refreshToken);
+    const hashedToken = await this.hashToken(refreshToken);
 
     newUser.hash = hashedToken;
     await newUser.save();
 
-    return { accessToken: tokens.accessToken, refreshToken: tokens.refreshToken };
+    return { accessToken, refreshToken };
   }
 
   public async validateUser(signinDto: SigninDto): Promise<Tokens> {
-    this.logger.verbose(`Validate user request: ${signinDto.email}`);
+    this.logger.debug(`Validate user request: ${signinDto.email}`);
     const { email, password } = signinDto;
 
     const user = await this.userService.findUserByEmail(email);
 
     if (!user) {
-      this.logger.verbose(`Validate user request: ${signinDto.email} but e-mail not found`);
+      this.logger.debug(`Validate user request: ${signinDto.email} but e-mail not found`);
       throw new BadRequestException("E-mail not found");
     }
 
     const isPasswordMatch = await this.compareHashes(password, user.password);
 
     if (!isPasswordMatch) {
-      this.logger.verbose(`Validate user request: ${signinDto.email} but password is wrong`);
+      this.logger.debug(`Validate user request: ${signinDto.email} but password is wrong`);
       throw new BadRequestException("Password not valid");
     }
-    this.logger.verbose(`Validated user successfully: ${signinDto.email}`);
+    this.logger.debug(`Validated user successfully: ${signinDto.email}`);
 
     const tokens = await this.signTokens(user);
+    const { accessToken, refreshToken } = tokens;
 
-    const hashedToken = await this.hashToken(tokens.refreshToken);
-
+    const hashedToken = await this.hashToken(refreshToken);
     user.hash = hashedToken;
     await user.save();
 
-    return { accessToken: tokens.accessToken, refreshToken: tokens.refreshToken };
+    return { accessToken, refreshToken };
   }
 
   // Utils

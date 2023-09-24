@@ -4,7 +4,7 @@ import { User, UserDocument } from "./schemas/user.schema";
 import { Model } from "mongoose";
 
 @Injectable()
-export class UserService {
+export class UsersService {
   constructor(@InjectModel(User.name) private readonly userModel: Model<User>) {}
 
   public async findUserByEmail(email: string): Promise<UserDocument> {
