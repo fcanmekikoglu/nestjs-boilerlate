@@ -1,12 +1,12 @@
 import { Module } from "@nestjs/common";
-import { AppController } from "./app.controller";
-import { AppService } from "./app.service";
 import { UsersModule } from "./users/users.module";
 import { AuthModule } from "./auth/auth.module";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { MongooseModule } from "@nestjs/mongoose";
 import { AccessTokenGuard } from "./auth/guards/access-token.guard";
 import { RolesGuard } from "./auth/guards/roles.guard";
+import { MailModule } from "./mail/mail.module";
+import { MailerModule } from "./mailer/mailer.module";
 
 @Module({
   imports: [
@@ -25,8 +25,13 @@ import { RolesGuard } from "./auth/guards/roles.guard";
     }),
     UsersModule,
     AuthModule,
+    MailModule,
+    MailerModule,
   ],
-  controllers: [AppController],
-  providers: [AppService, { provide: "APP_GUARD", useClass: AccessTokenGuard }, { provide: "APP_GUARD", useClass: RolesGuard }],
+  controllers: [],
+  providers: [
+    { provide: "APP_GUARD", useClass: AccessTokenGuard },
+    { provide: "APP_GUARD", useClass: RolesGuard },
+  ],
 })
 export class AppModule {}

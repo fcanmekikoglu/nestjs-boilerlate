@@ -8,6 +8,7 @@ import { JwtService } from "@nestjs/jwt";
 import { UserDocument } from "src/users/schemas/user.schema";
 import { JWT_CONSTANTS } from "./constants";
 import { SigninDto } from "./dto/signin.dto";
+import { MailService } from "src/mail/mail.service";
 
 @Injectable()
 export class AuthService {
@@ -16,6 +17,7 @@ export class AuthService {
   constructor(
     private readonly userService: UsersService,
     private readonly jwtService: JwtService,
+    private readonly mailService: MailService,
   ) {}
 
   /**
@@ -56,6 +58,8 @@ export class AuthService {
     const { accessToken, refreshToken } = tokens;
 
     const hashedToken = await this.hashToken(refreshToken);
+
+    await this.mailService.userSignup(newUser);
 
     newUser.hash = hashedToken;
     await newUser.save();

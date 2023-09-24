@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from "@nestjs/common";
+import { Body, Controller, Get, Post } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { Public } from "./decorators/public.decorator";
 import { SignupDto } from "./dto/signup.dto";
@@ -30,4 +30,10 @@ export class AuthController {
   async signin(@Body() siginDto: SigninDto): Promise<Tokens> {
     return await this.authService.validateUser(siginDto);
   }
+
+  // @Public()
+  // @Get('verify/email')
+  // async verifyEmailPage(){
+  //   // get hash from params
+  // }
 }

@@ -19,7 +19,7 @@ export class User {
   roles: UserRole[];
 
   @Prop({ type: Boolean, default: false })
-  isVerified: boolean;
+  isEmailVerified: boolean;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
