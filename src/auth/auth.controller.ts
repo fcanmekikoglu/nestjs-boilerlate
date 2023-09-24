@@ -6,6 +6,7 @@ import { Tokens } from "./types/tokens.type";
 
 import { ApiBody, ApiOperation, ApiTags, ApiResponse, ApiQuery } from "@nestjs/swagger";
 import { SigninDto } from "./dto/signin.dto";
+import { ForgotPasswordDto } from "./dto/forgot-password.dto";
 
 @ApiTags("Authentication")
 @Controller("auth")
@@ -40,5 +41,13 @@ export class AuthController {
   @ApiResponse({ status: 400, description: "Invalid action" })
   async verifyEmailPage(@Query() verifyEmailPayload: { email: string; hash: string }) {
     return await this.authService.verifyEmail(verifyEmailPayload);
+  }
+
+  @Public()
+  @Post("forgot/password")
+  @ApiOperation({ summary: "Send token for resetting password" })
+  @ApiBody({ type: ForgotPasswordDto, description: "Forgot password data" })
+  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
+    return await this.authService.forgotPassword(forgotPasswordDto.email);
   }
 }

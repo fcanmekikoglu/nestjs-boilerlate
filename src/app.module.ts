@@ -7,6 +7,7 @@ import { AccessTokenGuard } from "./auth/guards/access-token.guard";
 import { RolesGuard } from "./auth/guards/roles.guard";
 import { MailModule } from "./mail/mail.module";
 import { MailerModule } from "./mailer/mailer.module";
+import { ForgotModule } from './forgot/forgot.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { MailerModule } from "./mailer/mailer.module";
     AuthModule,
     MailModule,
     MailerModule,
+    ForgotModule,
   ],
   controllers: [],
   providers: [

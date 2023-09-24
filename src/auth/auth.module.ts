@@ -6,9 +6,10 @@ import { AccessTokenStrategy } from "./strategies/access-token.strategy";
 import { RefreshTokenStrategy } from "./strategies/refresh-token.strategy";
 import { UsersModule } from "src/users/users.module";
 import { MailModule } from "src/mail/mail.module";
+import { ForgotModule } from "src/forgot/forgot.module";
 
 @Module({
-  imports: [JwtModule.register({}), UsersModule, MailModule],
+  imports: [JwtModule.register({}), UsersModule, MailModule, ForgotModule],
   controllers: [AuthController],
   providers: [AuthService, AccessTokenStrategy, RefreshTokenStrategy],
 })

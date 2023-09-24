@@ -8,6 +8,10 @@ import { UserDocument } from "src/users/schemas/user.schema";
 import { JWT_CONSTANTS } from "./constants";
 import { SigninDto } from "./dto/signin.dto";
 import { MailService } from "src/mail/mail.service";
+import { UserNotFoundException } from "src/users/exceptions/user-not-found.exception";
+import { ForgotService } from "src/forgot/forgot.service";
+import { ForgotDocument } from "src/forgot/schemas/forgot.schema";
+import { generateResetPasswordToken } from "src/forgot/utils/generateResetPasswordToken";
 
 @Injectable()
 export class AuthService {
@@ -17,12 +21,13 @@ export class AuthService {
     private readonly userService: UsersService,
     private readonly jwtService: JwtService,
     private readonly mailService: MailService,
+    private readonly forgotService: ForgotService,
   ) {}
-  
+
   public async signup(signupDto: SignupDto): Promise<Tokens> {
     const { email, password } = signupDto;
 
-    const existingUser = await this.userService.findUserByEmail(email);
+    const existingUser = await this.userService.findByEmail(email);
 
     if (existingUser) {
       this.logger.debug("User tried to signup with a used email address");
@@ -31,7 +36,7 @@ export class AuthService {
 
     const hashedPassword = await this.hashPassword(password);
 
-    const newUser = await this.userService.createUser(email, hashedPassword);
+    const newUser = await this.userService.create(email, hashedPassword);
 
     this.logger.debug(`User with email ${email} signed up successfully.`);
 
@@ -52,7 +57,7 @@ export class AuthService {
     this.logger.debug(`Validate user request: ${signinDto.email}`);
     const { email, password } = signinDto;
 
-    const user = await this.userService.findUserByEmail(email);
+    const user = await this.userService.findByEmail(email);
 
     if (!user) {
       this.logger.debug(`Validate user request: ${signinDto.email} but e-mail not found`);
@@ -79,7 +84,7 @@ export class AuthService {
 
   async verifyEmail(verifyAccountByEmailPayload: { email: string; hash: string }) {
     try {
-      const user: UserDocument = await this.userService.findUserByEmail(verifyAccountByEmailPayload.email);
+      const user: UserDocument = await this.userService.findByEmail(verifyAccountByEmailPayload.email);
       if (!user) throw new Error();
       if (user.hash != verifyAccountByEmailPayload.hash) throw new Error();
       user.isEmailVerified = true;
@@ -88,6 +93,18 @@ export class AuthService {
     } catch (error) {
       return "Invalid action";
     }
+  }
+
+  async forgotPassword(email: string) {
+    const user = await this.userService.findByEmail(email);
+
+    if (!user) throw new UserNotFoundException();
+
+    const resetPasswordToken = generateResetPasswordToken();
+
+    const forgot: ForgotDocument = await this.forgotService.create(user.id, resetPasswordToken);
+
+    await this.mailService.forgotPassword(user, forgot);
   }
 
   // Utils
@@ -104,7 +121,7 @@ export class AuthService {
     ]);
     return { accessToken, refreshToken };
   }
-  
+
   private async hashPassword(password: string): Promise<string> {
     return await bcrypt.hash(password, 10);
   }

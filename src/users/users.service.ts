@@ -13,11 +13,11 @@ export class UsersService {
     return await this.userModel.findById(userId);
   }
 
-  public async findUserByEmail(email: string): Promise<UserDocument> {
+  public async findByEmail(email: string): Promise<UserDocument> {
     return await this.userModel.findOne({ email });
   }
 
-  public async createUser(email: string, hashedPassword: string): Promise<UserDocument> {
+  public async create(email: string, hashedPassword: string): Promise<UserDocument> {
     const newUser = new this.userModel({
       email,
       password: hashedPassword,
