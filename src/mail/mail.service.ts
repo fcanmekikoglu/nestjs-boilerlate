@@ -12,6 +12,8 @@ export class MailService {
     private readonly mailerService: MailerService,
   ) {}
 
+  baseUrl = this.configService.get<string>("API_BASE_URL");
+
   async userSignup(user: UserDocument) {
     const filePath = path.join(__dirname, "../../src/mail/mail-templates/activation.hbs");
     const template = await fs.readFile(filePath, "utf-8");
@@ -22,7 +24,7 @@ export class MailService {
       template: template,
       context: {
         title: "this is title",
-        url: "http://localhost:3000/v1/users/me",
+        url: `${this.baseUrl}/v1/auth/verify/email?email=${user.email}&hash=${user.hash}`,
         actionTitle: "this is action Title",
         app_name: "api app title",
         text1: "1asasf",

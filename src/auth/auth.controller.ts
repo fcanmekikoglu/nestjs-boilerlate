@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post } from "@nestjs/common";
+import { Body, Controller, Get, Post, Query } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { Public } from "./decorators/public.decorator";
 import { SignupDto } from "./dto/signup.dto";
@@ -31,9 +31,9 @@ export class AuthController {
     return await this.authService.validateUser(siginDto);
   }
 
-  // @Public()
-  // @Get('verify/email')
-  // async verifyEmailPage(){
-  //   // get hash from params
-  // }
+  @Public()
+  @Get("verify/email")
+  async verifyEmailPage(@Query() verifyEmailPayload: { email: string; hash: string }) {
+    return await this.authService.verifyEmail(verifyEmailPayload);
+  }
 }

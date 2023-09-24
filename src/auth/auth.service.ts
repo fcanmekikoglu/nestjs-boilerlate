@@ -59,9 +59,9 @@ export class AuthService {
 
     const hashedToken = await this.hashToken(refreshToken);
 
+    newUser.hash = hashedToken;
     await this.mailService.userSignup(newUser);
 
-    newUser.hash = hashedToken;
     await newUser.save();
 
     return { accessToken, refreshToken };
@@ -112,6 +112,36 @@ export class AuthService {
     await user.save();
 
     return { accessToken, refreshToken };
+  }
+
+  /**
+   * Verifies the email of a user based on provided email and hash.
+   *
+   * @async
+   * @param {Object} verifyAccountByEmailPayload - The payload for email verification.
+   * @param {string} verifyAccountByEmailPayload.email - The email address of the user.
+   * @param {string} verifyAccountByEmailPayload.hash - The hash associated with the email verification.
+   *
+   * @returns {Promise<string>} Returns a success message if the verification is successful;
+   * otherwise, returns an 'Invalid action' message.
+   *
+   * @throws Will return 'Invalid action' for any error during the verification process.
+   *
+   * @example
+   * const response = await verifyEmail({ email: 'user@example.com', hash: 'abcd1234' });
+   * console.log(response); // "Success! Account verified" or "Invalid action"
+   */
+  async verifyEmail(verifyAccountByEmailPayload: { email: string; hash: string }) {
+    try {
+      const user: UserDocument = await this.userService.findUserByEmail(verifyAccountByEmailPayload.email);
+      if (!user) throw new Error();
+      if (user.hash != verifyAccountByEmailPayload.hash) throw new Error();
+      user.isEmailVerified = true;
+      await user.save();
+      return "Success! Account verified";
+    } catch (error) {
+      return "Invalid action";
+    }
   }
 
   // Utils
