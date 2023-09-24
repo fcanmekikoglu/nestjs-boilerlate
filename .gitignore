@@ -4,6 +4,9 @@
 /dist
 /node_modules
 
+# Compodoc output. 
+/documentation
+
 
 # Logs
 logs
