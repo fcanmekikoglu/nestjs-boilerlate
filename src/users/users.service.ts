@@ -1,11 +1,23 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { User, UserDocument } from "./schemas/user.schema";
 import { Model } from "mongoose";
 
 @Injectable()
 export class UsersService {
+  private readonly logger = new Logger(UsersService.name);
+
   constructor(@InjectModel(User.name) private readonly userModel: Model<User>) {}
+
+  async getMe(userId: string): Promise<UserDocument> {
+    const me: UserDocument = await this.userModel.findById(userId);
+
+    if (!me) {
+      throw new NotFoundException("User not found");
+    }
+
+    return me;
+  }
 
   /**
    * Finds a user by their email address.
