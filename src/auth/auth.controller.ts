@@ -7,6 +7,7 @@ import { Tokens } from "./types/tokens.type";
 import { ApiBody, ApiOperation, ApiTags, ApiResponse, ApiQuery } from "@nestjs/swagger";
 import { SigninDto } from "./dto/signin.dto";
 import { ForgotPasswordDto } from "./dto/forgot-password.dto";
+import { ResetPasswordDto } from "./dto/reset-password.dto";
 
 @ApiTags("Authentication")
 @Controller("auth")
@@ -44,10 +45,18 @@ export class AuthController {
   }
 
   @Public()
-  @Post("forgot/password")
+  @Post("password/forgot")
   @ApiOperation({ summary: "Send token for resetting password" })
   @ApiBody({ type: ForgotPasswordDto, description: "Forgot password data" })
-  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
+  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto): Promise<void> {
     return await this.authService.forgotPassword(forgotPasswordDto.email);
+  }
+
+  @Public()
+  @Post("password/reset")
+  @ApiOperation({ summary: "Send new password for resetting password" })
+  @ApiBody({ type: ResetPasswordDto, description: "Reset password data" })
+  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+    return await this.authService.resetPassword(resetPasswordDto)
   }
 }

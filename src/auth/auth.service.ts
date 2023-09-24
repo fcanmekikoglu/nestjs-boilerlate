@@ -12,6 +12,7 @@ import { UserNotFoundException } from "src/users/exceptions/user-not-found.excep
 import { ForgotService } from "src/forgot/forgot.service";
 import { ForgotDocument } from "src/forgot/schemas/forgot.schema";
 import { generateResetPasswordToken } from "src/forgot/utils/generateResetPasswordToken";
+import { ResetPasswordDto } from "./dto/reset-password.dto";
 
 @Injectable()
 export class AuthService {
@@ -95,7 +96,7 @@ export class AuthService {
     }
   }
 
-  async forgotPassword(email: string) {
+  async forgotPassword(email: string): Promise<void> {
     const user = await this.userService.findByEmail(email);
 
     if (!user) throw new UserNotFoundException();
@@ -105,6 +106,42 @@ export class AuthService {
     const forgot: ForgotDocument = await this.forgotService.create(user.id, resetPasswordToken);
 
     await this.mailService.forgotPassword(user, forgot);
+
+    return;
+  }
+
+  async resetPassword(resetPasswordDto: ResetPasswordDto): Promise<Tokens> {
+    const MAX_TOKEN_AGE = 5 * 60 * 1000;
+
+    const { email, password, token } = resetPasswordDto;
+
+    const user = await this.userService.findByEmail(email);
+    if (!user) throw new UserNotFoundException();
+
+    const forgotDoc: ForgotDocument = await this.forgotService.findByUser(user.id);
+
+    if (!forgotDoc || forgotDoc.token != token) {
+      throw new BadRequestException("Invalid token");
+    }
+
+    const isTokenExpired = forgotDoc && new Date().getTime() - new Date(forgotDoc.createdAt).getTime() > MAX_TOKEN_AGE;
+
+    if (isTokenExpired) {
+      throw new BadRequestException("Token is expired");
+    }
+
+    const hashedPassword = await this.hashPassword(password);
+
+    const { accessToken, refreshToken } = await this.signTokens(user);
+
+    const hashedRefreshToken = await this.hashToken(refreshToken);
+
+    user.hash = hashedRefreshToken;
+    user.password = hashedPassword;
+
+    await user.save();
+
+    return { accessToken, refreshToken };
   }
 
   // Utils

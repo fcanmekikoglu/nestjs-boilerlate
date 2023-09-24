@@ -12,4 +12,8 @@ export class ForgotService {
 
     return await this.forgotModel.create({ user: userId, token });
   }
+
+  async findByUser(userId: Types.ObjectId): Promise<ForgotDocument> {
+    return await this.forgotModel.findOne({ user: userId });
+  }
 }
