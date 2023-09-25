@@ -3,6 +3,8 @@ import { UsersService } from "src/users/users.service";
 import { Tokens } from "./types/tokens.type";
 import { SignupDto } from "./dto/signup.dto";
 import * as bcrypt from "bcrypt";
+import * as crypto from "crypto";
+import { v4 as uuidv4 } from "uuid";
 import { JwtService } from "@nestjs/jwt";
 import { UserDocument } from "src/users/schemas/user.schema";
 import { JWT_CONSTANTS } from "./constants";
@@ -83,7 +85,19 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
-  async verifyEmail(verifyAccountByEmailPayload: { email: string; hash: string }) {
+  public async refresh(email: string, givenRefreshToken: string): Promise<Tokens> {
+    const user = await this.userService.findByEmail(email);
+    if (!user) throw new UserNotFoundException();
+    const isRefreshTokensMatch = await this.compareTokenHashes(givenRefreshToken, user.hash);
+    if (!isRefreshTokensMatch) throw new BadRequestException("Bad refresh token");
+    const { accessToken, refreshToken } = await this.signTokens(user);
+    const hashedRefreshToken = await this.hashToken(refreshToken);
+    user.hash = hashedRefreshToken;
+    await user.save();
+    return { accessToken, refreshToken };
+  }
+
+  public async verifyEmail(verifyAccountByEmailPayload: { email: string; hash: string }) {
     try {
       const user: UserDocument = await this.userService.findByEmail(verifyAccountByEmailPayload.email);
       if (!user) throw new Error();
@@ -96,7 +110,7 @@ export class AuthService {
     }
   }
 
-  async forgotPassword(email: string): Promise<void> {
+  public async forgotPassword(email: string): Promise<void> {
     const user = await this.userService.findByEmail(email);
 
     if (!user) throw new UserNotFoundException();
@@ -110,7 +124,7 @@ export class AuthService {
     return;
   }
 
-  async resetPassword(resetPasswordDto: ResetPasswordDto): Promise<Tokens> {
+  public async resetPassword(resetPasswordDto: ResetPasswordDto): Promise<Tokens> {
     const MAX_TOKEN_AGE = 5 * 60 * 1000;
 
     const { email, password, token } = resetPasswordDto;
@@ -152,7 +166,13 @@ export class AuthService {
         { secret: JWT_CONSTANTS.ACCESS_TOKEN_SECRET, expiresIn: JWT_CONSTANTS.ACCESS_TOKEN_EXPIRES_IN },
       ),
       this.jwtService.signAsync(
-        { sub: user.id, email: user.email, roles: user.roles, isEmailVerified: user.isEmailVerified },
+        {
+          sub: user.id,
+          email: user.email,
+          roles: user.roles,
+          isEmailVerified: user.isEmailVerified,
+          jti: uuidv4(),
+        },
         { secret: JWT_CONSTANTS.REFRESH_TOKEN_SECRET, expiresIn: JWT_CONSTANTS.REFRESH_TOKEN_EXPIRES_IN },
       ),
     ]);
@@ -163,8 +183,18 @@ export class AuthService {
     return await bcrypt.hash(password, 10);
   }
 
+  private preHashToken(token: string): string {
+    return crypto.createHash("sha256").update(token).digest("hex");
+  }
+
   private async hashToken(token: string): Promise<string> {
-    return await bcrypt.hash(token, 10);
+    const preHash = this.preHashToken(token);
+    return await bcrypt.hash(preHash, 10);
+  }
+
+  private async compareTokenHashes(token: string, hash: string): Promise<boolean> {
+    const preHash = this.preHashToken(token);
+    return await bcrypt.compare(preHash, hash);
   }
 
   private async compareHashes(plainText: string, hash: string): Promise<boolean> {

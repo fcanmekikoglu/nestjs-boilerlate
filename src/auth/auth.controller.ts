@@ -1,13 +1,15 @@
-import { Body, Controller, Get, Post, Query } from "@nestjs/common";
+import { Body, Controller, Get, Post, Query, UseGuards } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { Public } from "./decorators/public.decorator";
 import { SignupDto } from "./dto/signup.dto";
 import { Tokens } from "./types/tokens.type";
 
-import { ApiBody, ApiOperation, ApiTags, ApiResponse, ApiQuery } from "@nestjs/swagger";
-import { SigninDto } from "./dto/signin.dto";
+import { ApiBody, ApiOperation, ApiQuery, ApiResponse, ApiTags } from "@nestjs/swagger";
+import { GetCurrentUser } from "./decorators/get-current-user.decorator";
 import { ForgotPasswordDto } from "./dto/forgot-password.dto";
 import { ResetPasswordDto } from "./dto/reset-password.dto";
+import { SigninDto } from "./dto/signin.dto";
+import { RefreshTokenGuard } from "./guards/refresh-token.guard";
 
 @ApiTags("Authentication")
 @Controller("auth")
@@ -31,6 +33,14 @@ export class AuthController {
   @ApiResponse({ status: 400, description: "Bad request" })
   async signin(@Body() siginDto: SigninDto): Promise<Tokens> {
     return await this.authService.validateUser(siginDto);
+  }
+
+  @UseGuards(RefreshTokenGuard)
+  @Public()
+  @Get("refresh")
+  async refresh(@GetCurrentUser() user: Record<string, any>): Promise<Tokens> {
+    const { email, refreshToken } = user;
+    return await this.authService.refresh(email, refreshToken);
   }
 
   @Public()
