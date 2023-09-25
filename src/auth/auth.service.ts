@@ -1,20 +1,23 @@
-import { BadRequestException, Injectable, Logger } from "@nestjs/common";
-import { UsersService } from "src/users/users.service";
-import { Tokens } from "./types/tokens.type";
-import { SignupDto } from "./dto/signup.dto";
 import * as bcrypt from "bcrypt";
 import * as crypto from "crypto";
 import { v4 as uuidv4 } from "uuid";
+
+import { BadRequestException, Injectable, Logger } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
-import { UserDocument } from "src/users/schemas/user.schema";
-import { JWT_CONSTANTS } from "./constants";
+
+import { SignupDto } from "./dto/signup.dto";
 import { SigninDto } from "./dto/signin.dto";
-import { MailService } from "src/mail/mail.service";
+import { ResetPasswordDto } from "./dto/reset-password.dto";
+import { JWT_CONSTANTS } from "./constants";
+import { Tokens } from "./types/tokens.type";
+
+import { UsersService } from "src/users/users.service";
+import { UserDocument } from "src/users/schemas/user.schema";
 import { UserNotFoundException } from "src/users/exceptions/user-not-found.exception";
 import { ForgotService } from "src/forgot/forgot.service";
 import { ForgotDocument } from "src/forgot/schemas/forgot.schema";
 import { generateResetPasswordToken } from "src/forgot/utils/generateResetPasswordToken";
-import { ResetPasswordDto } from "./dto/reset-password.dto";
+import { MailService } from "src/mail/mail.service";
 
 @Injectable()
 export class AuthService {
@@ -30,7 +33,7 @@ export class AuthService {
   public async signup(signupDto: SignupDto): Promise<Tokens> {
     const { email, password } = signupDto;
 
-    const existingUser = await this.userService.findByEmail(email);
+    const existingUser: UserDocument = await this.userService.findOne({ email });
 
     if (existingUser) {
       this.logger.debug("User tried to signup with a used email address");
@@ -60,7 +63,7 @@ export class AuthService {
     this.logger.debug(`Validate user request: ${signinDto.email}`);
     const { email, password } = signinDto;
 
-    const user = await this.userService.findByEmail(email);
+    const user: UserDocument = await this.userService.findOne({ email });
 
     if (!user) {
       this.logger.debug(`Validate user request: ${signinDto.email} but e-mail not found`);
@@ -86,7 +89,7 @@ export class AuthService {
   }
 
   public async refresh(email: string, givenRefreshToken: string): Promise<Tokens> {
-    const user = await this.userService.findByEmail(email);
+    const user: UserDocument = await this.userService.findOne({ email });
     if (!user) throw new UserNotFoundException();
     const isRefreshTokensMatch = await this.compareTokenHashes(givenRefreshToken, user.hash);
     if (!isRefreshTokensMatch) throw new BadRequestException("Bad refresh token");
@@ -98,7 +101,7 @@ export class AuthService {
   }
 
   public async logout(email: string, refreshToken: string): Promise<void> {
-    const user = await this.userService.findByEmail(email);
+    const user: UserDocument = await this.userService.findOne({ email });
     if (!user) throw new UserNotFoundException();
     const isRefreshTokensMatch = await this.compareTokenHashes(refreshToken, user.hash);
     if (!isRefreshTokensMatch) throw new BadRequestException("Bad refresh token");
@@ -109,7 +112,7 @@ export class AuthService {
 
   public async verifyEmail(verifyAccountByEmailPayload: { email: string; hash: string }) {
     try {
-      const user: UserDocument = await this.userService.findByEmail(verifyAccountByEmailPayload.email);
+      const user: UserDocument = await this.userService.findOne({ email: verifyAccountByEmailPayload.email });
       if (!user) throw new Error();
       if (user.hash != verifyAccountByEmailPayload.hash) throw new Error();
       user.isEmailVerified = true;
@@ -121,7 +124,7 @@ export class AuthService {
   }
 
   public async forgotPassword(email: string): Promise<void> {
-    const user = await this.userService.findByEmail(email);
+    const user: UserDocument = await this.userService.findOne({ email });
 
     if (!user) throw new UserNotFoundException();
 
@@ -139,7 +142,7 @@ export class AuthService {
 
     const { email, password, token } = resetPasswordDto;
 
-    const user = await this.userService.findByEmail(email);
+    const user: UserDocument = await this.userService.findOne({ email });
     if (!user) throw new UserNotFoundException();
 
     const forgotDoc: ForgotDocument = await this.forgotService.findByUser(user.id);
