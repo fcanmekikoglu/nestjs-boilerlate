@@ -1,10 +1,10 @@
-import { Body, Controller, Get, Post, Query, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, Post, Query, UseGuards } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { Public } from "./decorators/public.decorator";
 import { SignupDto } from "./dto/signup.dto";
 import { Tokens } from "./types/tokens.type";
 
-import { ApiBody, ApiOperation, ApiQuery, ApiResponse, ApiTags } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiQuery, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { GetCurrentUser } from "./decorators/get-current-user.decorator";
 import { ForgotPasswordDto } from "./dto/forgot-password.dto";
 import { ResetPasswordDto } from "./dto/reset-password.dto";
@@ -38,9 +38,28 @@ export class AuthController {
   @UseGuards(RefreshTokenGuard)
   @Public()
   @Get("refresh")
+  @ApiOperation({ summary: "Refreshes the access token using the provided refresh token" })
+  @ApiResponse({ status: 200, description: "Successfully refreshed the access token" })
+  @ApiResponse({ status: 400, description: "Invalid refresh token" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiBearerAuth("refresh-token")
   async refresh(@GetCurrentUser() user: Record<string, any>): Promise<Tokens> {
     const { email, refreshToken } = user;
     return await this.authService.refresh(email, refreshToken);
+  }
+
+  @UseGuards(RefreshTokenGuard)
+  @Public()
+  @Delete("logout")
+  @HttpCode(204)
+  @ApiOperation({ summary: "Logs out user" })
+  @ApiResponse({ status: 204, description: "Successfully refreshed the access token" })
+  @ApiResponse({ status: 400, description: "Invalid refresh token" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiBearerAuth("refresh-token")
+  async logout(@GetCurrentUser() user: Record<string, any>) {
+    const { email, refreshToken } = user;
+    return await this.authService.logout(email, refreshToken);
   }
 
   @Public()

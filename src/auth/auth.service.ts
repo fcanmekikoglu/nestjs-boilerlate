@@ -97,6 +97,16 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
+  public async logout(email: string, refreshToken: string): Promise<void> {
+    const user = await this.userService.findByEmail(email);
+    if (!user) throw new UserNotFoundException();
+    const isRefreshTokensMatch = await this.compareTokenHashes(refreshToken, user.hash);
+    if (!isRefreshTokensMatch) throw new BadRequestException("Bad refresh token");
+    user.hash = "";
+    await user.save();
+    return;
+  }
+
   public async verifyEmail(verifyAccountByEmailPayload: { email: string; hash: string }) {
     try {
       const user: UserDocument = await this.userService.findByEmail(verifyAccountByEmailPayload.email);

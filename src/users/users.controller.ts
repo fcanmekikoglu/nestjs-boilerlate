@@ -10,13 +10,13 @@ import { EmailVerifiedGuard } from "src/auth/guards/email-verified.guard";
 @UseGuards(EmailVerifiedGuard)
 @UseGuards(AccessTokenGuard)
 @ApiTags("Users")
+@ApiBearerAuth("access-token")
 @Controller("users")
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Roles(UserRole.USER)
   @ApiOperation({ summary: "Get current user's information" })
-  @ApiBearerAuth()
   @ApiResponse({ status: 200, description: "Successfully retrieved user data" })
   @ApiResponse({ status: 401, description: "Unauthorized" })
   @ApiResponse({ status: 403, description: "Forbidden" })

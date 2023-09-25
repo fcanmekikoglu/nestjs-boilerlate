@@ -18,7 +18,13 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
 
   // OpenAPI Swagger Section
-  const config = new DocumentBuilder().setTitle("NestJs API").setDescription("Docs").setVersion("1.0").addBearerAuth().build();
+  const config = new DocumentBuilder()
+    .setTitle("NestJs API")
+    .setDescription("Docs")
+    .setVersion("1.0")
+    .addBearerAuth({ type: "http", scheme: "bearer", bearerFormat: "JWT", name: "AccessToken" }, "access-token")
+    .addBearerAuth({ type: "http", scheme: "bearer", bearerFormat: "JWT", name: "RefreshToken" }, "refresh-token")
+    .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup("swagger", app, document);
 
