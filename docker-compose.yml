@@ -1,8 +1,31 @@
 version: "3.8"
 
 services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nest_js_boilerplate
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mongodb
+    environment:
+      - DATABASE_URI=mongodb://127.0.0.1:27017/nest_js_boilerplate
+    networks:
+      - nestjs_network
   mongodb:
     image: mongo:latest
+    container_name: mongodb_container
+    networks:
+      - nestjs_network
+    volumes:
+      - mongodb_data:/data/db
     ports:
       - "27017:27017"
     command: mongod --bind_ip 0.0.0.0
+networks:
+  nestjs_network:
+    driver: bridge
+volumes:
+  mongodb_data:
