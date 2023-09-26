@@ -2,7 +2,7 @@
 
 copy .env
 
-docker compose -up d
+docker compose up -d
 
 npm i
 
